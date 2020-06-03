@@ -1,0 +1,590 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "HERE Vector Tiles API v2",
+    "description": "The HERE Vector Tile Service allows you to request tiles containing vector data using content from the HERE Open Location Platform. Our vector tiles use Web Mercator projection and follow the Vector Tile Specification. This format contains geometries, such as points and lines, that define polygons, labels, such as road names or city names, and other kinds of data that are typically passed to a renderer to draw a map. The tiles are optimized to be visualized as 512 screen pixels per tile.",
+    "version": "2.0.1",
+    "x-olp-service": {
+      "name": "Vector Tiles",
+      "version": "v2"
+    },
+    "x-document-meta-data": {
+      "copyright": "© 2020 HERE Europe B.V.",
+      "document-id": "91f0d10a-b5a9-47e7-be4e-1991be5c5db7",
+      "date-created": "2020-04-01T17:09:36+00:00"
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": [
+                    "Unauthorized"
+                  ]
+                },
+                "error_description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ProtoSchema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ProtoSchemaItem"
+        }
+      },
+      "ProtoSchemaItem": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "vector_tile.proto",
+            "description": "The name of the file to be retrieved in a subsequent call."
+          },
+          "description": {
+            "type": "string",
+            "example": "OMV format",
+            "description": "A textual description of the format."
+          }
+        }
+      },
+      "InfoSchema": {
+        "type": "object",
+        "properties": {
+          "mapVersion": {
+            "type": "string",
+            "example": "in25jp15",
+            "description": "The current encoded map version. Lasts for 24 hours. After that period, this value should be refreshed."
+          },
+          "softwareVersion": {
+            "type": "string",
+            "example": "1.0.0",
+            "description": "The version of HERE Vector Tiles Service."
+          }
+        }
+      },
+      "PoliticalViewsSchema": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "cn",
+              "description": "Indicates that China has disputed territories"
+            }
+          }
+        }
+      },
+      "LanguagesSchema": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "en",
+              "description": "Indicates that the map on this layer supports English language."
+            }
+          },
+          "core": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "en",
+              "description": "Indicates that the map on this layer supports English language."
+            }
+          }
+        }
+      },
+      "CopyrightSchema": {
+        "type": "object",
+        "properties": {
+          "base": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "alt": {
+                  "type": "string",
+                  "example": "copyright IGN 2009 - BD TOPO",
+                  "description": "Verbose copyright text of the label to display by mouse over label or info menu entry."
+                },
+                "boxes": {
+                  "type": "array",
+                  "description": "A collection of areas that belong to this copyright",
+                  "items": {
+                    "type": "array",
+                    "example": [
+                      15.6985,
+                      -61.9309,
+                      16.5953,
+                      -61.0013
+                    ],
+                    "description": "The bounding boxes define areas where specific copyrights are valid. A bounding box is defined by `bottom` (latitude), `left` (longitude) and `top` (latitude), `right` (longitude).",
+                    "items": {
+                      "type": "number",
+                      "format": "float"
+                    }
+                  }
+                },
+                "label": {
+                  "type": "string",
+                  "example": "IGN",
+                  "description": "Copyright text to display after the copyright symbol on the map."
+                },
+                "maxLevel": {
+                  "type": "integer",
+                  "example": "20",
+                  "description": "Maximum zoom level for the specified copyright label."
+                },
+                "minLevel": {
+                  "type": "integer",
+                  "example": "11",
+                  "description": "Minimum zoom level for the specified copyright label."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": [
+
+      ]
+    }
+  ],
+  "paths": {
+    "/{layer}/{projection}/{z}/{x}/{y}/{format}": {
+      "get": {
+        "description": "Retrieves the protocol buffer encoded binary tile.",
+        "summary": "Retrieves the protocol buffer encoded binary tile.",
+        "operationId": "getTile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "layer",
+            "example": "base",
+            "required": true,
+            "description": "Specifies the layers available in the tile. The access to each layer is determined by the contract of the user.\n * base - includes base layer\n * core - includes everything form `base` and additional data for some countries (for example: Japan)\n",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "base",
+                "core"
+              ]
+            }
+          },
+          {
+            "in": "path",
+            "name": "projection",
+            "example": "mc",
+            "required": true,
+            "description": "Specifies the tile projection.\n * mc - Mercator Projection\n",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mc"
+              ]
+            }
+          },
+          {
+            "in": "path",
+            "name": "z",
+            "required": true,
+            "description": "Specifies the tile Zoom level. Accepted values range from 1-17.\n * minimum - 1\n\n * maximum - 17\n",
+            "example": 11,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 17
+            }
+          },
+          {
+            "in": "path",
+            "name": "x",
+            "required": true,
+            "description": "Specifies the X coordinate index. This parameter is dependent upon the tile Zoom level.\n * minimum - 0\n\n * maximum - 2^z-1 (depends on the Zoom level)\n",
+            "example": 1100,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "in": "path",
+            "name": "y",
+            "required": true,
+            "description": "Specifies the Y coordinate index. This parameter is dependent upon the tile Zoom level.\n * minimum - 0\n\n * maximum - 2^z-1 (depends on the Zoom level)\n",
+            "example": 671,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "in": "path",
+            "name": "format",
+            "required": true,
+            "example": "omv",
+            "description": "Specifies the tile format.\n * omv - Optimized Map for Visualization (follows Map Vector Tile open specification)\n",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "omv"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "mv",
+            "required": false,
+            "example": "in07",
+            "description": "Specifies the map version to be used. The map version can be retrieved by querying /info",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          },
+          {
+            "in": "header",
+            "name": "if-none-match",
+            "required": false,
+            "example": "12345",
+            "description": "Specifies an optional entity tag of the resource cached in the client.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Binary tile successfully retrieved.",
+            "content": {
+              "application/x-protobuf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            },
+            "headers": {
+              "ETag": {
+                "description": "Entity tag. Version of the provided tile.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Tile data is not available in data (at all or for requested tile version) or no features in requested tile."
+          },
+          "304": {
+            "description": "The resource cached in the client (identified by the if-none-match) header has not changed."
+          },
+          "400": {
+            "description": "Possible messages due to request URI validation error.\n* Layer 'some' is invalid.\n* Format 'wrong' format is invalid. Accepted formats are - omv.\n* Projection 'na' is invalid. Accepted projection are - mc.\n* Zoom level 100 is invalid. Accepted zoom levels are - [1-17].\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "cause": {
+                      "type": "string"
+                    },
+                    "correlationId": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/info": {
+      "get": {
+        "description": "Returns the catalog name and map version. This version is valid only for 24h",
+        "summary": "Returns the catalog name and version. This version is valid only for 24h",
+        "operationId": "getInfo",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "example": "12345",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Information about the catalog and map version returned.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/pviews": {
+      "get": {
+        "description": "Returns the list of available political views.",
+        "summary": "Returns the political views",
+        "operationId": "getPoliticalViews",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "example": "12345",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - List of political views",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoliticalViewsSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/languages": {
+      "get": {
+        "description": "Returns the list of available map languages per warp layer.",
+        "summary": "Returns the map languages.",
+        "operationId": "getLanguages",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "example": "12345",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - List of languages per warp layer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanguagesSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/copyright": {
+      "get": {
+        "description": "Returns the copyright.",
+        "summary": "Returns the copyright",
+        "operationId": "getCopyright",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "example": "12345",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Information about the copyright.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CopyrightSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/docs/layers/json": {
+      "get": {
+        "description": "Returns OMV-2 layers documentation.",
+        "summary": "Returns OMV-2 layers documentation.",
+        "operationId": "getDocs",
+        "responses": {
+          "200": {
+            "description": "OK - Documentation returned."
+          }
+        }
+      }
+    },
+    "/proto": {
+      "get": {
+        "description": "Returns a list of available protocol buffer formats.",
+        "summary": "Returns a list of available protocol buffer formats.",
+        "operationId": "listProto",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "example": "12345",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Procol buffer format list retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtoSchema"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/proto/{name}": {
+      "get": {
+        "description": "Returns the specified protocol buffer file format.",
+        "summary": "Returns the specified protocol buffer file format.",
+        "operationId": "getProto",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "description": "Specifies the name of the requested protocol buffer format file.",
+            "example": "vector_tile.proto",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "apikey",
+            "required": false,
+            "example": "12345",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specifies the API Key used for authorization when not using the Authentication Header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK - Protocol buffer format file retrieved.",
+            "content": {
+              "text/plain; charset=UTF-8": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Requested protocol buffer format file is not available."
+          }
+        }
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://vector.hereapi.com/v2/vectortiles",
+      "variables": {
+      },
+      "description": "Production"
+    }
+  ]
+}
